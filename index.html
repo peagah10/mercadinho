@@ -297,15 +297,15 @@
         }
 
         .banner-slide:nth-child(1) {
-            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), linear-gradient(135deg, var(--fresh-green), var(--primary-color));
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), linear-gradient(135deg, var(--fresh-green), var(--primary-color));
         }
 
         .banner-slide:nth-child(2) {
-            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), linear-gradient(135deg, var(--accent-color), var(--discount-red));
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), linear-gradient(135deg, var(--accent-color), var(--discount-red));
         }
 
         .banner-slide:nth-child(3) {
-            background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0,0,0,0.1)), linear-gradient(135deg, var(--secondary-color), var(--warning-color));
+            background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0,0,0,0.2)), linear-gradient(135deg, var(--secondary-color), var(--warning-color));
         }
 
         .banner-content {
@@ -363,7 +363,7 @@
             transform: scale(1.2);
         }
 
-        /* Categories */
+        /* Categories - New balloon style */
         .categories-section {
             margin: 4rem 0;
         }
@@ -390,74 +390,30 @@
         }
 
         .categories-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
             margin-bottom: 4rem;
         }
 
-        .category-card {
-            background: var(--light-color);
-            padding: 2.5rem 2rem;
-            border-radius: var(--radius-xl);
-            text-align: center;
+        .category-balloon {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
             cursor: pointer;
-            transition: all 0.4s ease;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--gray-200);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .category-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .category-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-xl);
-            border-color: var(--primary-color);
-        }
-
-        .category-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .category-image {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin: 0 auto 1.5rem;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            box-shadow: var(--shadow-md);
-            background-color: var(--gray-100);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: var(--primary-color);
-        }
-
-        .category-icon {
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
-            color: var(--primary-color);
-        }
-
-        .category-name {
+            transition: all 0.3s ease;
             font-weight: 600;
-            font-size: 1.125rem;
-            color: var(--gray-800);
+            font-size: 0.875rem;
+            border: none;
+            box-shadow: var(--shadow-md);
+        }
+
+        .category-balloon:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-color));
         }
 
         /* Products */
@@ -1695,18 +1651,13 @@
             }
 
             .categories-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
+                justify-content: flex-start;
+                gap: 0.5rem;
             }
 
-            .category-card {
-                padding: 1.5rem 1rem;
-            }
-
-            .category-image {
-                width: 60px;
-                height: 60px;
-                font-size: 1.5rem;
+            .category-balloon {
+                padding: 0.5rem 1rem;
+                font-size: 0.75rem;
             }
 
             /* Admin table responsive */
@@ -1756,18 +1707,12 @@
             }
 
             .categories-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.75rem;
+                gap: 0.5rem;
             }
 
-            .category-card {
-                padding: 1rem;
-            }
-
-            .category-image {
-                width: 50px;
-                height: 50px;
-                font-size: 1.25rem;
+            .category-balloon {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.7rem;
             }
         }
 
@@ -1803,38 +1748,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        /* Notification */
-        .notification {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            padding: 1rem 1.5rem;
-            border-radius: var(--radius-lg);
-            color: white;
-            font-weight: 600;
-            z-index: 9999;
-            box-shadow: var(--shadow-xl);
-            animation: slideInRight 0.4s ease;
-            min-width: 300px;
-        }
-
-        .notification.success {
-            background: linear-gradient(135deg, var(--success-color), var(--primary-dark));
-        }
-
-        .notification.error {
-            background: linear-gradient(135deg, var(--accent-color), #B71C1C);
-        }
-
-        .notification.info {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-        }
-
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
         }
     </style>
 </head>
@@ -1958,7 +1871,8 @@
                         <tbody id="dashboardOrdersTable">
                             <tr>
                                 <td colspan="6" style="text-align: center; color: var(--gray-500); padding: 2rem;">
-                                    Carregando pedidos...
+                                    <div class="loading"></div>
+                                    <span style="margin-left: 1rem;">Carregando pedidos...</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -1990,7 +1904,8 @@
                         <tbody id="categoriesTableBody">
                             <tr>
                                 <td colspan="6" style="text-align: center; color: var(--gray-500); padding: 2rem;">
-                                    Carregando categorias...
+                                    <div class="loading"></div>
+                                    <span style="margin-left: 1rem;">Carregando categorias...</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -2022,7 +1937,8 @@
                         <tbody id="productsTableBody">
                             <tr>
                                 <td colspan="6" style="text-align: center; color: var(--gray-500); padding: 2rem;">
-                                    Carregando produtos...
+                                    <div class="loading"></div>
+                                    <span style="margin-left: 1rem;">Carregando produtos...</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -2054,7 +1970,8 @@
                         <tbody id="bannersTableBody">
                             <tr>
                                 <td colspan="6" style="text-align: center; color: var(--gray-500); padding: 2rem;">
-                                    Carregando banners...
+                                    <div class="loading"></div>
+                                    <span style="margin-left: 1rem;">Carregando banners...</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -2088,7 +2005,8 @@
                         <tbody id="ordersTableBody">
                             <tr>
                                 <td colspan="8" style="text-align: center; color: var(--gray-500); padding: 2rem;">
-                                    Carregando pedidos...
+                                    <div class="loading"></div>
+                                    <span style="margin-left: 1rem;">Carregando pedidos...</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -2163,7 +2081,7 @@
                 <button class="nav-item" onclick="showView('home')">
                     <i class="fas fa-home"></i> Início
                 </button>
-                <button class="nav-item" onclick="showView('products')">
+                <button class="nav-item" onclick="loadAllProducts(); showView('products')">
                     <i class="fas fa-box"></i> Produtos
                 </button>
                 <button class="nav-item" onclick="showView('contact')">
@@ -2182,7 +2100,7 @@
                 <button class="nav-item" onclick="showView('home')">
                     <i class="fas fa-home"></i> Início
                 </button>
-                <button class="nav-item" onclick="showView('products')">
+                <button class="nav-item" onclick="loadAllProducts(); showView('products')">
                     <i class="fas fa-box"></i> Produtos
                 </button>
                 <button class="nav-item" onclick="toggleCart()">
@@ -2230,7 +2148,6 @@
                 <!-- Banner Slider -->
                 <section class="banner-section">
                     <div class="banner-slider" id="bannerSlider">
-                        <!-- Banners will be loaded here dynamically -->
                         <div style="display: flex; align-items: center; justify-content: center; height: 400px; color: var(--gray-500);">
                             <div class="loading"></div>
                             <span style="margin-left: 1rem;">Carregando banners...</span>
@@ -2242,7 +2159,6 @@
                 <section class="categories-section">
                     <h2 class="section-title">Nossas Categorias</h2>
                     <div class="categories-grid" id="categoriesGrid">
-                        <!-- Categories will be loaded here -->
                         <div style="grid-column: 1/-1; display: flex; align-items: center; justify-content: center; padding: 3rem; color: var(--gray-500);">
                             <div class="loading"></div>
                             <span style="margin-left: 1rem;">Carregando categorias...</span>
@@ -2254,7 +2170,6 @@
                 <section class="products-section">
                     <h2 class="section-title">Produtos em Destaque</h2>
                     <div class="products-grid" id="featuredProducts">
-                        <!-- Featured products will be loaded here -->
                         <div style="grid-column: 1/-1; display: flex; align-items: center; justify-content: center; padding: 3rem; color: var(--gray-500);">
                             <div class="loading"></div>
                             <span style="margin-left: 1rem;">Carregando produtos...</span>
@@ -2281,7 +2196,6 @@
                 </div>
 
                 <div class="products-grid" id="allProducts">
-                    <!-- All products will be loaded here -->
                     <div style="grid-column: 1/-1; display: flex; align-items: center; justify-content: center; padding: 3rem; color: var(--gray-500);">
                         <div class="loading"></div>
                         <span style="margin-left: 1rem;">Carregando produtos...</span>
@@ -2502,6 +2416,7 @@
         let orders = [];
         let selectedPaymentMethod = '';
         let currentAdminView = 'dashboard';
+        let allProductsLoaded = false;
 
         // Dark mode support
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -2524,15 +2439,13 @@
             try {
                 checkLoginStatus();
                 await loadStoreSettings();
-                await loadDataFromDatabase();
+                await loadInitialData();
                 setupEventListeners();
                 startSlider();
                 updateStoreInfo();
                 await updateDashboard();
-                showNotification('Sistema carregado com sucesso!', 'success');
             } catch (error) {
                 console.error('Error initializing app:', error);
-                showNotification('Erro ao carregar sistema. Usando dados padrão.', 'error');
                 loadDefaultData();
                 setupEventListeners();
                 startSlider();
@@ -2541,7 +2454,170 @@
             }
         }
 
-        // Supabase Database Functions
+        async function loadInitialData() {
+            await Promise.all([
+                loadCategoriesFromDB(),
+                loadBannersFromDB(),
+                loadOrdersFromDB()
+            ]);
+            // Only load featured products initially
+            await loadFeaturedProductsFromDB();
+        }
+
+        // Optimized product loading
+        async function loadFeaturedProductsFromDB() {
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('status', 'active')
+                    .not('promo_price', 'is', null)
+                    .order('name')
+                    .limit(6);
+
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    products = data;
+                } else {
+                    await createDefaultProducts();
+                }
+                
+                loadFeaturedProducts();
+            } catch (error) {
+                console.error('Error loading featured products:', error);
+                loadDefaultProducts();
+                loadFeaturedProducts();
+            }
+        }
+
+        async function loadAllProducts() {
+            if (allProductsLoaded) return;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('status', 'active')
+                    .order('name')
+                    .limit(100);
+
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    products = data;
+                } else {
+                    await createDefaultProducts();
+                }
+                
+                allProductsLoaded = true;
+                loadProducts();
+            } catch (error) {
+                console.error('Error loading all products:', error);
+                loadDefaultProducts();
+                loadProducts();
+            }
+        }
+
+        // Optimized category loading with DocumentFragment
+        function loadCategories() {
+            const categoriesGrid = document.getElementById('categoriesGrid');
+            const filterButtons = document.getElementById('filterButtons');
+            
+            // Clear and create fragment for categories
+            const fragment = document.createDocumentFragment();
+            categoriesGrid.innerHTML = '';
+            
+            const activeCategories = categories.filter(cat => cat.status === 'active');
+            
+            if (activeCategories.length === 0) {
+                categoriesGrid.innerHTML = `
+                    <div style="grid-column: 1/-1; display: flex; align-items: center; justify-content: center; padding: 3rem; color: var(--gray-500);">
+                        <p>Nenhuma categoria encontrada</p>
+                    </div>
+                `;
+            } else {
+                activeCategories.forEach(category => {
+                    const categoryBalloon = document.createElement('button');
+                    categoryBalloon.className = 'category-balloon';
+                    categoryBalloon.textContent = category.name;
+                    categoryBalloon.onclick = () => filterByCategory(category.id);
+                    fragment.appendChild(categoryBalloon);
+                });
+                categoriesGrid.appendChild(fragment);
+            }
+
+            // Clear existing filter buttons (except "Todos")
+            const allButton = filterButtons.querySelector('[data-category="all"]');
+            const filterFragment = document.createDocumentFragment();
+            filterButtons.innerHTML = '';
+            filterButtons.appendChild(allButton);
+
+            // Add category filter buttons
+            activeCategories.forEach(category => {
+                const filterBtn = document.createElement('button');
+                filterBtn.className = 'filter-btn';
+                filterBtn.setAttribute('data-category', category.id);
+                filterBtn.textContent = category.name;
+                filterBtn.onclick = () => filterByCategory(category.id);
+                filterFragment.appendChild(filterBtn);
+            });
+            filterButtons.appendChild(filterFragment);
+        }
+
+        // Optimized product rendering with DocumentFragment
+        function displayProducts(productList, containerId) {
+            const container = document.getElementById(containerId);
+            const fragment = document.createDocumentFragment();
+            container.innerHTML = '';
+
+            if (productList.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; display: flex; align-items: center; justify-content: center; padding: 3rem; color: var(--gray-500);">
+                        <p>Nenhum produto encontrado</p>
+                    </div>
+                `;
+                return;
+            }
+
+            productList.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                
+                const hasPromo = product.promo_price && product.promo_price < product.price;
+                const currentPrice = hasPromo ? product.promo_price : product.price;
+                
+                const imageContent = product.image_url 
+                    ? `<img src="${product.image_url}" alt="${product.name}" loading="lazy">`
+                    : `<i class="fas fa-image"></i>`;
+                
+                productCard.innerHTML = `
+                    <div class="product-image">
+                        ${imageContent}
+                        ${hasPromo ? '<div class="promo-badge">OFERTA</div>' : ''}
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">${product.name}</h3>
+                        <p class="product-description">${product.description}</p>
+                        <div class="product-price">
+                            <div>
+                                ${hasPromo ? `<span class="price-original">R$ ${product.price.toFixed(2)}</span>` : ''}
+                                <span class="price-current">R$ ${currentPrice.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        <button class="add-to-cart-btn" onclick="addToCart(${product.id})">
+                            <i class="fas fa-cart-plus"></i>
+                            Adicionar ao Carrinho
+                        </button>
+                    </div>
+                `;
+                fragment.appendChild(productCard);
+            });
+            
+            container.appendChild(fragment);
+        }
+
+        // Optimized database loading functions
         async function loadStoreSettings() {
             try {
                 const { data, error } = await supabase
@@ -2587,21 +2663,13 @@
             }
         }
 
-        async function loadDataFromDatabase() {
-            await Promise.all([
-                loadCategoriesFromDB(),
-                loadProductsFromDB(),
-                loadBannersFromDB(),
-                loadOrdersFromDB()
-            ]);
-        }
-
         async function loadCategoriesFromDB() {
             try {
                 const { data, error } = await supabase
                     .from('categories')
                     .select('*')
-                    .order('order_position');
+                    .order('order_position')
+                    .limit(20);
 
                 if (error) throw error;
                 
@@ -2619,39 +2687,14 @@
             }
         }
 
-        async function loadProductsFromDB() {
-            try {
-                const { data, error } = await supabase
-                    .from('products')
-                    .select('*')
-                    .eq('status', 'active')
-                    .order('name');
-
-                if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    products = data;
-                } else {
-                    await createDefaultProducts();
-                }
-                
-                loadProducts();
-                loadFeaturedProducts();
-            } catch (error) {
-                console.error('Error loading products:', error);
-                loadDefaultProducts();
-                loadProducts();
-                loadFeaturedProducts();
-            }
-        }
-
         async function loadBannersFromDB() {
             try {
                 const { data, error } = await supabase
                     .from('banners')
                     .select('*')
                     .eq('status', 'active')
-                    .order('order_position');
+                    .order('order_position')
+                    .limit(10);
 
                 if (error) throw error;
                 
@@ -2682,7 +2725,8 @@
                             price
                         )
                     `)
-                    .order('created_at', { ascending: false });
+                    .order('created_at', { ascending: false })
+                    .limit(50);
 
                 if (error) throw error;
                 
@@ -3170,7 +3214,6 @@
             const logoFile = document.getElementById('storeLogoInput').files[0];
             
             if (!name || !phone || !address) {
-                showNotification('Preencha todos os campos obrigatórios', 'error');
                 return;
             }
 
@@ -3193,10 +3236,8 @@
                 
                 document.querySelector('.fixed').remove();
                 updateStoreInfo();
-                showNotification('Configurações salvas com sucesso!', 'success');
             } catch (error) {
                 console.error('Error saving settings:', error);
-                showNotification('Erro ao salvar configurações!', 'error');
             }
         }
 
@@ -3237,7 +3278,6 @@
             const password = document.getElementById('adminPassword').value;
 
             if (!username || !password) {
-                showNotification('Preencha todos os campos!', 'error');
                 return;
             }
 
@@ -3246,9 +3286,6 @@
                 setLoginSession();
                 hideLoginModal();
                 showAdminPanel();
-                showNotification('Login realizado com sucesso!', 'success');
-            } else {
-                showNotification('Usuário ou senha incorretos!', 'error');
             }
         }
 
@@ -3413,55 +3450,6 @@
             sidebar.classList.remove('mobile-open');
         }
 
-        // Category Functions
-        function loadCategories() {
-            const categoriesGrid = document.getElementById('categoriesGrid');
-            const filterButtons = document.getElementById('filterButtons');
-            
-            // Load categories in home page
-            categoriesGrid.innerHTML = '';
-            const activeCategories = categories.filter(cat => cat.status === 'active');
-            
-            if (activeCategories.length === 0) {
-                categoriesGrid.innerHTML = `
-                    <div style="grid-column: 1/-1; display: flex; align-items: center; justify-content: center; padding: 3rem; color: var(--gray-500);">
-                        <p>Nenhuma categoria encontrada</p>
-                    </div>
-                `;
-            } else {
-                activeCategories.forEach(category => {
-                    const categoryCard = document.createElement('div');
-                    categoryCard.className = 'category-card';
-                    categoryCard.onclick = () => filterByCategory(category.id);
-                    
-                    const imageContent = category.image_url 
-                        ? `<div class="category-image" style="background-image: url('${category.image_url}')"></div>`
-                        : `<div class="category-image"><i class="${category.icon}"></i></div>`;
-                    
-                    categoryCard.innerHTML = `
-                        ${imageContent}
-                        <div class="category-name">${category.name}</div>
-                    `;
-                    categoriesGrid.appendChild(categoryCard);
-                });
-            }
-
-            // Clear existing filter buttons (except "Todos")
-            const allButton = filterButtons.querySelector('[data-category="all"]');
-            filterButtons.innerHTML = '';
-            filterButtons.appendChild(allButton);
-
-            // Load filter buttons
-            activeCategories.forEach(category => {
-                const filterBtn = document.createElement('button');
-                filterBtn.className = 'filter-btn';
-                filterBtn.setAttribute('data-category', category.id);
-                filterBtn.textContent = category.name;
-                filterBtn.onclick = () => filterByCategory(category.id);
-                filterButtons.appendChild(filterBtn);
-            });
-        }
-
         function filterByCategory(categoryId) {
             // Update filter buttons
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -3479,6 +3467,10 @@
                 displayProducts(filteredProducts, 'allProducts');
             }
 
+            // Ensure all products are loaded when switching to products view
+            if (!allProductsLoaded) {
+                loadAllProducts();
+            }
             showView('products');
         }
 
@@ -3493,54 +3485,6 @@
                 product.status === 'active' && product.promo_price
             ).slice(0, 6);
             displayProducts(featuredProducts, 'featuredProducts');
-        }
-
-        function displayProducts(productList, containerId) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-
-            if (productList.length === 0) {
-                container.innerHTML = `
-                    <div style="grid-column: 1/-1; display: flex; align-items: center; justify-content: center; padding: 3rem; color: var(--gray-500);">
-                        <p>Nenhum produto encontrado</p>
-                    </div>
-                `;
-                return;
-            }
-
-            productList.forEach(product => {
-                const productCard = document.createElement('div');
-                productCard.className = 'product-card';
-                
-                const hasPromo = product.promo_price && product.promo_price < product.price;
-                const currentPrice = hasPromo ? product.promo_price : product.price;
-                
-                const imageContent = product.image_url 
-                    ? `<img src="${product.image_url}" alt="${product.name}" loading="lazy">`
-                    : `<i class="fas fa-image"></i>`;
-                
-                productCard.innerHTML = `
-                    <div class="product-image">
-                        ${imageContent}
-                        ${hasPromo ? '<div class="promo-badge">OFERTA</div>' : ''}
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-name">${product.name}</h3>
-                        <p class="product-description">${product.description}</p>
-                        <div class="product-price">
-                            <div>
-                                ${hasPromo ? `<span class="price-original">R$ ${product.price.toFixed(2)}</span>` : ''}
-                                <span class="price-current">R$ ${currentPrice.toFixed(2)}</span>
-                            </div>
-                        </div>
-                        <button class="add-to-cart-btn" onclick="addToCart(${product.id})">
-                            <i class="fas fa-cart-plus"></i>
-                            Adicionar ao Carrinho
-                        </button>
-                    </div>
-                `;
-                container.appendChild(productCard);
-            });
         }
 
         function filterProducts(searchTerm) {
@@ -3576,7 +3520,6 @@
             }
 
             updateCartUI();
-            showNotification('Produto adicionado ao carrinho!', 'success');
         }
 
         function removeFromCart(productId) {
@@ -3606,8 +3549,10 @@
             cartCount.textContent = totalItems;
             cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
 
-            // Update cart items
+            // Update cart items using DocumentFragment
+            const fragment = document.createDocumentFragment();
             cartItems.innerHTML = '';
+            
             if (cart.length === 0) {
                 cartItems.innerHTML = `
                     <div style="text-align: center; padding: 3rem; color: var(--gray-500);">
@@ -3643,8 +3588,9 @@
                             <i class="fas fa-trash"></i>
                         </button>
                     `;
-                    cartItems.appendChild(cartItem);
+                    fragment.appendChild(cartItem);
                 });
+                cartItems.appendChild(fragment);
             }
 
             // Update total
@@ -3659,7 +3605,6 @@
 
         function proceedToCheckout() {
             if (cart.length === 0) {
-                showNotification('Adicione produtos ao carrinho antes de finalizar', 'error');
                 return;
             }
             
@@ -3700,7 +3645,6 @@
             const reference = document.getElementById('customerReference').value;
 
             if (!name || !phone || !address || !number || !neighborhood || !selectedPaymentMethod) {
-                showNotification('Preencha todos os campos obrigatórios', 'error');
                 return;
             }
 
@@ -3752,7 +3696,6 @@
                 // Clear cart and show success
                 cart = [];
                 updateCartUI();
-                showNotification('Pedido enviado para WhatsApp!', 'success');
                 setTimeout(() => {
                     showView('home');
                     document.getElementById('checkoutForm').reset();
@@ -3761,7 +3704,6 @@
                 }, 2000);
             } catch (error) {
                 console.error('Error saving order:', error);
-                showNotification('Erro ao processar pedido. Tente novamente.', 'error');
             }
         }
 
@@ -3864,7 +3806,6 @@
 
         function refreshDashboard() {
             updateDashboard();
-            showNotification('Dashboard atualizado!', 'success');
         }
 
         // Admin Functions
@@ -3922,7 +3863,6 @@
 
         function refreshOrders() {
             loadOrdersFromDB();
-            showNotification('Pedidos atualizados!', 'success');
         }
 
         function viewOrder(orderId) {
@@ -4022,10 +3962,8 @@
                 document.querySelector('.fixed').remove();
                 loadOrdersAdmin();
                 loadDashboardOrders();
-                showNotification('Status do pedido atualizado!', 'success');
             } catch (error) {
                 console.error('Error updating order status:', error);
-                showNotification('Erro ao atualizar status do pedido!', 'error');
             }
         }
 
@@ -4049,7 +3987,7 @@
             categories.forEach(category => {
                 const row = document.createElement('tr');
                 const imageDisplay = category.image_url 
-                    ? `<img src="${category.image_url}" alt="${category.name}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">`
+                    ? `<img src="${category.image_url}" alt="${category.name}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" loading="lazy">`
                     : `<i class="${category.icon}" style="font-size: 2rem; color: var(--primary-color);"></i>`;
                 
                 row.innerHTML = `
@@ -4139,7 +4077,7 @@
             banners.forEach(banner => {
                 const row = document.createElement('tr');
                 const imageDisplay = banner.image_url 
-                    ? `<img src="${banner.image_url}" alt="${banner.title}" style="width: 100px; height: 60px; object-fit: cover; border-radius: var(--radius-md);">`
+                    ? `<img src="${banner.image_url}" alt="${banner.title}" style="width: 100px; height: 60px; object-fit: cover; border-radius: var(--radius-md);" loading="lazy">`
                     : `<div style="width: 100px; height: 60px; background: var(--gray-100); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: var(--gray-400);"><i class="fas fa-image"></i></div>`;
                 
                 row.innerHTML = `
@@ -4214,7 +4152,6 @@
             const imageFile = document.getElementById('categoryImageInput').files[0];
             
             if (!name) {
-                showNotification('Nome da categoria é obrigatório', 'error');
                 return;
             }
 
@@ -4252,10 +4189,8 @@
                 document.querySelector('.fixed').remove();
                 loadCategoriesAdmin();
                 loadCategories();
-                showNotification('Categoria salva com sucesso!', 'success');
             } catch (error) {
                 console.error('Error saving category:', error);
-                showNotification('Erro ao salvar categoria!', 'error');
             }
         }
 
@@ -4270,10 +4205,8 @@
                     categories = categories.filter(c => c.id !== categoryId);
                     loadCategoriesAdmin();
                     loadCategories();
-                    showNotification('Categoria excluída com sucesso!', 'success');
                 } catch (error) {
                     console.error('Error deleting category:', error);
-                    showNotification('Erro ao excluir categoria!', 'error');
                 }
             });
         }
@@ -4352,7 +4285,6 @@
             const imageFile = document.getElementById('productImageInput').files[0];
             
             if (!name || !description || !price || price <= 0) {
-                showNotification('Preencha todos os campos obrigatórios', 'error');
                 return;
             }
 
@@ -4391,13 +4323,13 @@
                 
                 document.querySelector('.fixed').remove();
                 loadProductsAdmin();
-                loadProducts();
+                if (allProductsLoaded) {
+                    loadProducts();
+                }
                 loadFeaturedProducts();
                 updateDashboard();
-                showNotification('Produto salvo com sucesso!', 'success');
             } catch (error) {
                 console.error('Error saving product:', error);
-                showNotification('Erro ao salvar produto!', 'error');
             }
         }
 
@@ -4411,13 +4343,13 @@
                     await deleteProductFromDB(productId);
                     products = products.filter(p => p.id !== productId);
                     loadProductsAdmin();
-                    loadProducts();
+                    if (allProductsLoaded) {
+                        loadProducts();
+                    }
                     loadFeaturedProducts();
                     updateDashboard();
-                    showNotification('Produto excluído com sucesso!', 'success');
                 } catch (error) {
                     console.error('Error deleting product:', error);
-                    showNotification('Erro ao excluir produto!', 'error');
                 }
             });
         }
@@ -4426,7 +4358,7 @@
             const product = products.find(p => p.id === productId);
             if (product) {
                 const imageDisplay = product.image_url 
-                    ? `<img src="${product.image_url}" alt="${product.name}" class="w-full h-48 object-cover rounded-lg mb-4" style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-lg); margin-bottom: 1rem;">`
+                    ? `<img src="${product.image_url}" alt="${product.name}" class="w-full h-48 object-cover rounded-lg mb-4" style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-lg); margin-bottom: 1rem;" loading="lazy">`
                     : `<div style="width: 100%; height: 200px; background: var(--gray-100); border-radius: var(--radius-lg); margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; color: var(--gray-400); font-size: 3rem;"><i class="fas fa-image"></i></div>`;
                 
                 const modalHtml = `
@@ -4519,7 +4451,6 @@
             const imageFile = document.getElementById('bannerImageInput').files[0];
             
             if (!title || !subtitle) {
-                showNotification('Título e subtítulo são obrigatórios', 'error');
                 return;
             }
 
@@ -4559,10 +4490,8 @@
                 document.querySelector('.fixed').remove();
                 loadBannersAdmin();
                 loadBanners(); // Update banners on homepage
-                showNotification('Banner salvo com sucesso!', 'success');
             } catch (error) {
                 console.error('Error saving banner:', error);
-                showNotification('Erro ao salvar banner!', 'error');
             }
         }
 
@@ -4577,10 +4506,8 @@
                     banners = banners.filter(b => b.id !== bannerId);
                     loadBannersAdmin();
                     loadBanners(); // Update banners on homepage
-                    showNotification('Banner excluído com sucesso!', 'success');
                 } catch (error) {
                     console.error('Error deleting banner:', error);
-                    showNotification('Erro ao excluir banner!', 'error');
                 }
             });
         }
@@ -4614,22 +4541,6 @@
             };
             
             document.body.appendChild(modal);
-        }
-
-        // Utility Functions
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}" style="margin-right: 0.5rem;"></i>
-                ${message}
-            `;
-
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.remove();
-            }, 4000);
         }
     </script>
 </body>
