@@ -297,15 +297,15 @@
         }
 
         .banner-slide:nth-child(1) {
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), linear-gradient(135deg, var(--fresh-green), var(--primary-color));
+            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)), linear-gradient(135deg, var(--fresh-green), var(--primary-color));
         }
 
         .banner-slide:nth-child(2) {
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), linear-gradient(135deg, var(--accent-color), var(--discount-red));
+            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)), linear-gradient(135deg, var(--accent-color), var(--discount-red));
         }
 
         .banner-slide:nth-child(3) {
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), linear-gradient(135deg, var(--secondary-color), var(--warning-color));
+            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)), linear-gradient(135deg, var(--secondary-color), var(--warning-color));
         }
 
         .banner-content {
@@ -1836,6 +1836,27 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+
+        /* Loading optimizations */
+        .fast-loading {
+            opacity: 0;
+            animation: fadeInFast 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeInFast {
+            to { opacity: 1; }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
     </style>
 </head>
 <body>
@@ -2515,23 +2536,41 @@
             }
         });
 
-        // Initialize Application
+        // Initialize Application - OTIMIZADO PARA VELOCIDADE
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
         });
 
         async function initializeApp() {
             try {
+                console.log('🚀 Iniciando sistema...');
+                showNotification('Sistema iniciando...', 'info');
+                
+                // Carregar dados essenciais primeiro
                 checkLoginStatus();
                 await loadStoreSettings();
-                await loadDataFromDatabase();
+                updateStoreInfo();
+                
+                // Carregar dados padrão rapidamente
+                loadDefaultData();
                 setupEventListeners();
                 startSlider();
-                updateStoreInfo();
-                await updateDashboard();
-                showNotification('Sistema carregado com sucesso!', 'success');
+                
+                // Atualizar com dados do banco em background
+                setTimeout(async () => {
+                    try {
+                        await loadDataFromDatabase();
+                        await updateDashboard();
+                        showNotification('Sistema carregado com sucesso! 🎉', 'success');
+                        console.log('✅ Sistema totalmente carregado');
+                    } catch (error) {
+                        console.error('⚠️ Erro ao carregar dados do banco:', error);
+                        showNotification('Sistema funcionando em modo offline', 'info');
+                    }
+                }, 500); // Delay de 500ms para UI responsiva
+                
             } catch (error) {
-                console.error('Error initializing app:', error);
+                console.error('❌ Erro crítico ao inicializar:', error);
                 showNotification('Erro ao carregar sistema. Usando dados padrão.', 'error');
                 loadDefaultData();
                 setupEventListeners();
@@ -2541,13 +2580,20 @@
             }
         }
 
-        // Supabase Database Functions
+        // Supabase Database Functions - COM TIMEOUT E CACHE
         async function loadStoreSettings() {
             try {
-                const { data, error } = await supabase
+                // Timeout de 3 segundos
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout')), 3000)
+                );
+                
+                const dataPromise = supabase
                     .from('store_settings')
                     .select('*')
                     .single();
+                    
+                const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
 
                 if (error && error.code !== 'PGRST116') {
                     throw error;
@@ -2562,13 +2608,17 @@
                     };
                 }
             } catch (error) {
-                console.error('Error loading store settings:', error);
+                console.error('⚠️ Erro ao carregar configurações da loja:', error);
             }
         }
 
         async function saveStoreSettingsToDatabase(settings) {
             try {
-                const { data, error } = await supabase
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout')), 5000)
+                );
+                
+                const savePromise = supabase
                     .from('store_settings')
                     .upsert({
                         id: 1,
@@ -2578,100 +2628,137 @@
                         logo_url: settings.logo_url,
                         updated_at: new Date().toISOString()
                     });
+                    
+                const { data, error } = await Promise.race([savePromise, timeoutPromise]);
 
                 if (error) throw error;
                 return true;
             } catch (error) {
-                console.error('Error saving store settings:', error);
+                console.error('⚠️ Erro ao salvar configurações:', error);
                 throw error;
             }
         }
 
         async function loadDataFromDatabase() {
-            await Promise.all([
+            console.log('📥 Carregando dados do banco...');
+            
+            // Carregar dados em paralelo com timeouts
+            const promises = [
                 loadCategoriesFromDB(),
-                loadProductsFromDB(),
+                loadProductsFromDB(), 
                 loadBannersFromDB(),
                 loadOrdersFromDB()
-            ]);
+            ];
+            
+            // Aguardar apenas 5 segundos no máximo
+            try {
+                await Promise.race([
+                    Promise.allSettled(promises),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Database timeout')), 5000)
+                    )
+                ]);
+                console.log('✅ Dados do banco carregados');
+            } catch (error) {
+                console.error('⚠️ Timeout ou erro no banco de dados:', error);
+                showNotification('Usando dados offline - sistema funcional', 'info');
+            }
         }
 
         async function loadCategoriesFromDB() {
             try {
-                const { data, error } = await supabase
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout')), 3000)
+                );
+                
+                const dataPromise = supabase
                     .from('categories')
                     .select('*')
                     .order('order_position');
+                    
+                const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
 
                 if (error) throw error;
                 
                 if (data && data.length > 0) {
                     categories = data;
+                    loadCategories(); // Atualizar UI
                 } else {
                     await createDefaultCategories();
                 }
                 
-                loadCategories();
             } catch (error) {
-                console.error('Error loading categories:', error);
-                loadDefaultCategories();
-                loadCategories();
+                console.error('⚠️ Erro ao carregar categorias:', error);
+                // Manter dados padrão já carregados
             }
         }
 
         async function loadProductsFromDB() {
             try {
-                const { data, error } = await supabase
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout')), 3000)
+                );
+                
+                const dataPromise = supabase
                     .from('products')
                     .select('*')
                     .eq('status', 'active')
                     .order('name');
+                    
+                const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
 
                 if (error) throw error;
                 
                 if (data && data.length > 0) {
                     products = data;
+                    loadProducts(); // Atualizar UI
+                    loadFeaturedProducts();
                 } else {
                     await createDefaultProducts();
                 }
                 
-                loadProducts();
-                loadFeaturedProducts();
             } catch (error) {
-                console.error('Error loading products:', error);
-                loadDefaultProducts();
-                loadProducts();
-                loadFeaturedProducts();
+                console.error('⚠️ Erro ao carregar produtos:', error);
+                // Manter dados padrão já carregados
             }
         }
 
         async function loadBannersFromDB() {
             try {
-                const { data, error } = await supabase
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout')), 3000)
+                );
+                
+                const dataPromise = supabase
                     .from('banners')
                     .select('*')
                     .eq('status', 'active')
                     .order('order_position');
+                    
+                const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
 
                 if (error) throw error;
                 
                 if (data && data.length > 0) {
                     banners = data;
+                    loadBanners(); // Atualizar UI
                 } else {
                     await createDefaultBanners();
                 }
                 
-                loadBanners();
             } catch (error) {
-                console.error('Error loading banners:', error);
-                loadDefaultBanners();
-                loadBanners();
+                console.error('⚠️ Erro ao carregar banners:', error);
+                // Manter dados padrão já carregados
             }
         }
 
         async function loadOrdersFromDB() {
             try {
-                const { data, error } = await supabase
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout')), 3000)
+                );
+                
+                const dataPromise = supabase
                     .from('orders')
                     .select(`
                         *,
@@ -2683,15 +2770,16 @@
                         )
                     `)
                     .order('created_at', { ascending: false });
+                    
+                const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
 
                 if (error) throw error;
                 
                 orders = data || [];
-                loadAdminData();
+                loadAdminData(); // Atualizar UI admin
             } catch (error) {
-                console.error('Error loading orders:', error);
+                console.error('⚠️ Erro ao carregar pedidos:', error);
                 orders = [];
-                loadAdminData();
             }
         }
 
@@ -2714,9 +2802,9 @@
 
                 if (error) throw error;
                 categories = data;
+                loadCategories();
             } catch (error) {
-                console.error('Error creating default categories:', error);
-                loadDefaultCategories();
+                console.error('⚠️ Erro ao criar categorias padrão:', error);
             }
         }
 
@@ -2740,9 +2828,10 @@
 
                 if (error) throw error;
                 products = data;
+                loadProducts();
+                loadFeaturedProducts();
             } catch (error) {
-                console.error('Error creating default products:', error);
-                loadDefaultProducts();
+                console.error('⚠️ Erro ao criar produtos padrão:', error);
             }
         }
 
@@ -2760,9 +2849,9 @@
 
                 if (error) throw error;
                 banners = data;
+                loadBanners();
             } catch (error) {
-                console.error('Error creating default banners:', error);
-                loadDefaultBanners();
+                console.error('⚠️ Erro ao criar banners padrão:', error);
             }
         }
 
@@ -2793,7 +2882,7 @@
                     return data;
                 }
             } catch (error) {
-                console.error('Error saving category:', error);
+                console.error('⚠️ Erro ao salvar categoria:', error);
                 throw error;
             }
         }
@@ -2824,7 +2913,7 @@
                     return data;
                 }
             } catch (error) {
-                console.error('Error saving product:', error);
+                console.error('⚠️ Erro ao salvar produto:', error);
                 throw error;
             }
         }
@@ -2855,7 +2944,7 @@
                     return data;
                 }
             } catch (error) {
-                console.error('Error saving banner:', error);
+                console.error('⚠️ Erro ao salvar banner:', error);
                 throw error;
             }
         }
@@ -2897,7 +2986,7 @@
                 orderRecord.order_items = orderItems;
                 return orderRecord;
             } catch (error) {
-                console.error('Error saving order:', error);
+                console.error('⚠️ Erro ao salvar pedido:', error);
                 throw error;
             }
         }
@@ -2914,7 +3003,7 @@
                 if (error) throw error;
                 return data;
             } catch (error) {
-                console.error('Error updating order status:', error);
+                console.error('⚠️ Erro ao atualizar status do pedido:', error);
                 throw error;
             }
         }
@@ -2930,7 +3019,7 @@
                 if (error) throw error;
                 return true;
             } catch (error) {
-                console.error('Error deleting category:', error);
+                console.error('⚠️ Erro ao deletar categoria:', error);
                 throw error;
             }
         }
@@ -2945,7 +3034,7 @@
                 if (error) throw error;
                 return true;
             } catch (error) {
-                console.error('Error deleting product:', error);
+                console.error('⚠️ Erro ao deletar produto:', error);
                 throw error;
             }
         }
@@ -2960,7 +3049,7 @@
                 if (error) throw error;
                 return true;
             } catch (error) {
-                console.error('Error deleting banner:', error);
+                console.error('⚠️ Erro ao deletar banner:', error);
                 throw error;
             }
         }
@@ -2992,7 +3081,7 @@
             loginExpiration = null;
         }
 
-        // Default data fallback
+        // Default data fallback - CARREGAMENTO RÁPIDO
         function loadDefaultCategories() {
             categories = [
                 { id: 1, name: 'Bebidas & Mercearia', image_url: null, icon: 'fas fa-wine-bottle', order_position: 1, status: 'active' },
@@ -3023,6 +3112,7 @@
         }
 
         function loadDefaultData() {
+            console.log('📦 Carregando dados padrão...');
             loadDefaultCategories();
             loadDefaultProducts();
             loadDefaultBanners();
@@ -3031,6 +3121,7 @@
             loadFeaturedProducts();
             loadBanners();
             loadAdminData();
+            console.log('✅ Dados padrão carregados');
         }
 
         // Event Listeners
@@ -3195,7 +3286,7 @@
                 updateStoreInfo();
                 showNotification('Configurações salvas com sucesso!', 'success');
             } catch (error) {
-                console.error('Error saving settings:', error);
+                console.error('⚠️ Erro ao salvar configurações:', error);
                 showNotification('Erro ao salvar configurações!', 'error');
             }
         }
@@ -3252,7 +3343,7 @@
             }
         }
 
-        // Banner Functions
+        // Banner Functions - CORRIGIDO PARA IMAGENS MAIS CLARAS
         function loadBanners() {
             const bannerSlider = document.getElementById('bannerSlider');
             bannerSlider.innerHTML = '';
@@ -3272,18 +3363,18 @@
                 const bannerSlide = document.createElement('div');
                 bannerSlide.className = `banner-slide ${index === 0 ? 'active' : ''}`;
                 
-                // Use custom background if image exists, otherwise use gradients
+                // CORRIGIDO: Overlay muito mais claro para não escurecer as imagens
                 if (banner.image_url) {
-                    bannerSlide.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${banner.image_url})`;
+                    bannerSlide.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)), url(${banner.image_url})`;
                     bannerSlide.style.backgroundSize = 'cover';
                     bannerSlide.style.backgroundPosition = 'center';
                     bannerSlide.style.backgroundRepeat = 'no-repeat';
                 } else {
-                    // Use default gradients based on position
+                    // Use default gradients based on position with lighter overlay
                     const gradients = [
-                        'linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), linear-gradient(135deg, var(--fresh-green), var(--primary-color))',
-                        'linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), linear-gradient(135deg, var(--accent-color), var(--discount-red))',
-                        'linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), linear-gradient(135deg, var(--secondary-color), var(--warning-color))'
+                        'linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)), linear-gradient(135deg, var(--fresh-green), var(--primary-color))',
+                        'linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)), linear-gradient(135deg, var(--accent-color), var(--discount-red))',
+                        'linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)), linear-gradient(135deg, var(--secondary-color), var(--warning-color))'
                     ];
                     bannerSlide.style.background = gradients[index % gradients.length];
                 }
@@ -3431,7 +3522,7 @@
             } else {
                 activeCategories.forEach(category => {
                     const categoryCard = document.createElement('div');
-                    categoryCard.className = 'category-card';
+                    categoryCard.className = 'category-card fast-loading';
                     categoryCard.onclick = () => filterByCategory(category.id);
                     
                     const imageContent = category.image_url 
@@ -3510,7 +3601,7 @@
 
             productList.forEach(product => {
                 const productCard = document.createElement('div');
-                productCard.className = 'product-card';
+                productCard.className = 'product-card fast-loading';
                 
                 const hasPromo = product.promo_price && product.promo_price < product.price;
                 const currentPrice = hasPromo ? product.promo_price : product.price;
@@ -3760,7 +3851,7 @@
                     document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
                 }, 2000);
             } catch (error) {
-                console.error('Error saving order:', error);
+                console.error('⚠️ Erro ao processar pedido:', error);
                 showNotification('Erro ao processar pedido. Tente novamente.', 'error');
             }
         }
@@ -4024,7 +4115,7 @@
                 loadDashboardOrders();
                 showNotification('Status do pedido atualizado!', 'success');
             } catch (error) {
-                console.error('Error updating order status:', error);
+                console.error('⚠️ Erro ao atualizar status do pedido:', error);
                 showNotification('Erro ao atualizar status do pedido!', 'error');
             }
         }
@@ -4254,7 +4345,7 @@
                 loadCategories();
                 showNotification('Categoria salva com sucesso!', 'success');
             } catch (error) {
-                console.error('Error saving category:', error);
+                console.error('⚠️ Erro ao salvar categoria:', error);
                 showNotification('Erro ao salvar categoria!', 'error');
             }
         }
@@ -4272,7 +4363,7 @@
                     loadCategories();
                     showNotification('Categoria excluída com sucesso!', 'success');
                 } catch (error) {
-                    console.error('Error deleting category:', error);
+                    console.error('⚠️ Erro ao excluir categoria:', error);
                     showNotification('Erro ao excluir categoria!', 'error');
                 }
             });
@@ -4396,7 +4487,7 @@
                 updateDashboard();
                 showNotification('Produto salvo com sucesso!', 'success');
             } catch (error) {
-                console.error('Error saving product:', error);
+                console.error('⚠️ Erro ao salvar produto:', error);
                 showNotification('Erro ao salvar produto!', 'error');
             }
         }
@@ -4416,7 +4507,7 @@
                     updateDashboard();
                     showNotification('Produto excluído com sucesso!', 'success');
                 } catch (error) {
-                    console.error('Error deleting product:', error);
+                    console.error('⚠️ Erro ao excluir produto:', error);
                     showNotification('Erro ao excluir produto!', 'error');
                 }
             });
@@ -4561,7 +4652,7 @@
                 loadBanners(); // Update banners on homepage
                 showNotification('Banner salvo com sucesso!', 'success');
             } catch (error) {
-                console.error('Error saving banner:', error);
+                console.error('⚠️ Erro ao salvar banner:', error);
                 showNotification('Erro ao salvar banner!', 'error');
             }
         }
@@ -4579,7 +4670,7 @@
                     loadBanners(); // Update banners on homepage
                     showNotification('Banner excluído com sucesso!', 'success');
                 } catch (error) {
-                    console.error('Error deleting banner:', error);
+                    console.error('⚠️ Erro ao excluir banner:', error);
                     showNotification('Erro ao excluir banner!', 'error');
                 }
             });
