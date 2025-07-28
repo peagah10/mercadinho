@@ -2026,7 +2026,7 @@
                         <h3>Configurações do Sistema</h3>
                         <button class="add-btn" onclick="showSettingsForm()">
                             <i class="fas fa-edit"></i>
-                            Editar Configurações
+                            Editar
                         </button>
                     </div>
                     <div style="padding: 2rem;">
@@ -2634,6 +2634,58 @@
             container.appendChild(fragment);
         }
 
+        // Supabase Storage Functions
+        async function uploadImageToStorage(file, bucket, fileName = null) {
+            try {
+                if (!file) return null;
+                
+                // Generate unique filename if not provided
+                const uniqueFileName = fileName || `${Date.now()}_${Math.random().toString(36).substring(2, 15)}_${file.name}`;
+                
+                const { data, error } = await supabase.storage
+                    .from(bucket)
+                    .upload(uniqueFileName, file, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+
+                if (error) {
+                    console.error('Upload error:', error);
+                    throw error;
+                }
+
+                // Get public URL
+                const { data: urlData } = supabase.storage
+                    .from(bucket)
+                    .getPublicUrl(data.path);
+
+                return urlData.publicUrl;
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                throw error;
+            }
+        }
+
+        async function deleteImageFromStorage(url, bucket) {
+            try {
+                if (!url) return;
+                
+                // Extract file path from URL
+                const urlParts = url.split('/');
+                const fileName = urlParts[urlParts.length - 1];
+                
+                const { error } = await supabase.storage
+                    .from(bucket)
+                    .remove([fileName]);
+
+                if (error) {
+                    console.error('Delete error:', error);
+                }
+            } catch (error) {
+                console.error('Error deleting image:', error);
+            }
+        }
+
         // Optimized database loading functions
         async function loadStoreSettings() {
             try {
@@ -3198,7 +3250,7 @@
                                     <input type="file" id="storeLogoInput" accept="image/*" onchange="previewStoreLogo(this)">
                                     <label for="storeLogoInput" class="file-upload-label">
                                         <i class="fas fa-cloud-upload-alt"></i>
-                                        <span>Escolher logo da loja</span>
+                                        <span>Fazer upload da imagem</span>
                                     </label>
                                 </div>
                                 <div class="file-preview" id="storeLogoPreview">
@@ -3219,8 +3271,9 @@
         async function previewStoreLogo(input) {
             const preview = document.getElementById('storeLogoPreview');
             if (input.files && input.files[0]) {
-                const base64 = await convertFileToBase64(input.files[0]);
-                preview.innerHTML = `<img src="${base64}" alt="Preview">`;
+                const file = input.files[0];
+                const url = URL.createObjectURL(file);
+                preview.innerHTML = `<img src="${url}" alt="Preview">`;
             }
         }
 
@@ -3238,11 +3291,18 @@
                 const updatedSettings = {
                     name: name,
                     phone: phone,
-                    address: address
+                    address: address,
+                    logo_url: storeSettings.logo_url // Keep current logo unless new one is uploaded
                 };
 
                 if (logoFile) {
-                    updatedSettings.logo_url = await convertFileToBase64(logoFile);
+                    // Delete old image if exists
+                    if (storeSettings.logo_url) {
+                        await deleteImageFromStorage(storeSettings.logo_url, 'loja');
+                    }
+                    
+                    // Upload new image
+                    updatedSettings.logo_url = await uploadImageToStorage(logoFile, 'loja');
                 }
 
                 // Save to database
@@ -3262,16 +3322,6 @@
         function toggleAdminSidebar() {
             const sidebar = document.getElementById('adminSidebar');
             sidebar.classList.toggle('mobile-open');
-        }
-
-        // Utility Functions
-        function convertFileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
         }
 
         // Login Functions
@@ -4121,7 +4171,7 @@
                                     <input type="file" id="categoryImageInput" accept="image/*" onchange="previewCategoryImage(this)">
                                     <label for="categoryImageInput" class="file-upload-label">
                                         <i class="fas fa-cloud-upload-alt"></i>
-                                        <span>Escolher imagem do dispositivo</span>
+                                        <span>Fazer upload da imagem</span>
                                     </label>
                                 </div>
                                 <div class="file-preview" id="categoryImagePreview">
@@ -4142,8 +4192,9 @@
         async function previewCategoryImage(input) {
             const preview = document.getElementById('categoryImagePreview');
             if (input.files && input.files[0]) {
-                const base64 = await convertFileToBase64(input.files[0]);
-                preview.innerHTML = `<img src="${base64}" alt="Preview" style="max-width: 150px; max-height: 150px; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">`;
+                const file = input.files[0];
+                const url = URL.createObjectURL(file);
+                preview.innerHTML = `<img src="${url}" alt="Preview" style="max-width: 150px; max-height: 150px; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">`;
             }
         }
 
@@ -4156,11 +4207,6 @@
             }
 
             try {
-                let imageBase64 = null;
-                if (imageFile) {
-                    imageBase64 = await convertFileToBase64(imageFile);
-                }
-
                 const categoryData = {
                     name: name,
                     status: 'active',
@@ -4168,8 +4214,23 @@
                     order_position: categories.length + 1
                 };
 
-                if (imageBase64) {
-                    categoryData.image_url = imageBase64;
+                // Keep existing image URL if no new image is uploaded
+                if (categoryId) {
+                    const existingCategory = categories.find(c => c.id === categoryId);
+                    categoryData.image_url = existingCategory ? existingCategory.image_url : null;
+                }
+
+                if (imageFile) {
+                    // Delete old image if exists
+                    if (categoryId) {
+                        const existingCategory = categories.find(c => c.id === categoryId);
+                        if (existingCategory && existingCategory.image_url) {
+                            await deleteImageFromStorage(existingCategory.image_url, 'categorias');
+                        }
+                    }
+                    
+                    // Upload new image
+                    categoryData.image_url = await uploadImageToStorage(imageFile, 'categorias');
                 }
 
                 if (categoryId) {
@@ -4201,6 +4262,12 @@
         async function deleteCategory(categoryId) {
             showConfirmDialog('Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.', async () => {
                 try {
+                    // Delete image from storage if exists
+                    const category = categories.find(c => c.id === categoryId);
+                    if (category && category.image_url) {
+                        await deleteImageFromStorage(category.image_url, 'categorias');
+                    }
+                    
                     await deleteCategoryFromDB(categoryId);
                     categories = categories.filter(c => c.id !== categoryId);
                     loadCategoriesAdmin();
@@ -4250,7 +4317,7 @@
                                     <input type="file" id="productImageInput" accept="image/*" onchange="previewProductImage(this)">
                                     <label for="productImageInput" class="file-upload-label">
                                         <i class="fas fa-cloud-upload-alt"></i>
-                                        <span>Escolher imagem do dispositivo</span>
+                                        <span>Fazer upload da imagem</span>
                                     </label>
                                 </div>
                                 <div class="file-preview" id="productImagePreview">
@@ -4271,8 +4338,9 @@
         async function previewProductImage(input) {
             const preview = document.getElementById('productImagePreview');
             if (input.files && input.files[0]) {
-                const base64 = await convertFileToBase64(input.files[0]);
-                preview.innerHTML = `<img src="${base64}" alt="Preview">`;
+                const file = input.files[0];
+                const url = URL.createObjectURL(file);
+                preview.innerHTML = `<img src="${url}" alt="Preview">`;
             }
         }
 
@@ -4289,11 +4357,6 @@
             }
 
             try {
-                let imageBase64 = null;
-                if (imageFile) {
-                    imageBase64 = await convertFileToBase64(imageFile);
-                }
-
                 const productData = {
                     name: name,
                     description: description,
@@ -4303,8 +4366,23 @@
                     status: 'active'
                 };
 
-                if (imageBase64) {
-                    productData.image_url = imageBase64;
+                // Keep existing image URL if no new image is uploaded
+                if (productId) {
+                    const existingProduct = products.find(p => p.id === productId);
+                    productData.image_url = existingProduct ? existingProduct.image_url : null;
+                }
+
+                if (imageFile) {
+                    // Delete old image if exists
+                    if (productId) {
+                        const existingProduct = products.find(p => p.id === productId);
+                        if (existingProduct && existingProduct.image_url) {
+                            await deleteImageFromStorage(existingProduct.image_url, 'produtos');
+                        }
+                    }
+                    
+                    // Upload new image
+                    productData.image_url = await uploadImageToStorage(imageFile, 'produtos');
                 }
 
                 if (productId) {
@@ -4338,6 +4416,12 @@
         async function deleteProduct(productId) {
             showConfirmDialog('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.', async () => {
                 try {
+                    // Delete image from storage if exists
+                    const product = products.find(p => p.id === productId);
+                    if (product && product.image_url) {
+                        await deleteImageFromStorage(product.image_url, 'produtos');
+                    }
+                    
                     await deleteProductFromDB(productId);
                     products = products.filter(p => p.id !== productId);
                     loadProductsAdmin();
@@ -4413,7 +4497,7 @@
                                     <input type="file" id="bannerImageInput" accept="image/*" onchange="previewBannerImage(this)">
                                     <label for="bannerImageInput" class="file-upload-label">
                                         <i class="fas fa-cloud-upload-alt"></i>
-                                        <span>Escolher imagem do dispositivo</span>
+                                        <span>Fazer upload da imagem</span>
                                     </label>
                                 </div>
                                 <div class="file-preview" id="bannerImagePreview">
@@ -4434,8 +4518,9 @@
         async function previewBannerImage(input) {
             const preview = document.getElementById('bannerImagePreview');
             if (input.files && input.files[0]) {
-                const base64 = await convertFileToBase64(input.files[0]);
-                preview.innerHTML = `<img src="${base64}" alt="Preview">`;
+                const file = input.files[0];
+                const url = URL.createObjectURL(file);
+                preview.innerHTML = `<img src="${url}" alt="Preview">`;
             }
         }
 
@@ -4451,11 +4536,6 @@
             }
 
             try {
-                let imageBase64 = null;
-                if (imageFile) {
-                    imageBase64 = await convertFileToBase64(imageFile);
-                }
-
                 const bannerData = {
                     title: title,
                     subtitle: subtitle,
@@ -4465,8 +4545,23 @@
                     order_position: banners.length + 1
                 };
 
-                if (imageBase64) {
-                    bannerData.image_url = imageBase64;
+                // Keep existing image URL if no new image is uploaded
+                if (bannerId) {
+                    const existingBanner = banners.find(b => b.id === bannerId);
+                    bannerData.image_url = existingBanner ? existingBanner.image_url : null;
+                }
+
+                if (imageFile) {
+                    // Delete old image if exists
+                    if (bannerId) {
+                        const existingBanner = banners.find(b => b.id === bannerId);
+                        if (existingBanner && existingBanner.image_url) {
+                            await deleteImageFromStorage(existingBanner.image_url, 'banners');
+                        }
+                    }
+                    
+                    // Upload new image
+                    bannerData.image_url = await uploadImageToStorage(imageFile, 'banners');
                 }
 
                 if (bannerId) {
@@ -4498,6 +4593,12 @@
         async function deleteBanner(bannerId) {
             showConfirmDialog('Tem certeza que deseja excluir este banner? Esta ação não pode ser desfeita.', async () => {
                 try {
+                    // Delete image from storage if exists
+                    const banner = banners.find(b => b.id === bannerId);
+                    if (banner && banner.image_url) {
+                        await deleteImageFromStorage(banner.image_url, 'banners');
+                    }
+                    
                     await deleteBannerFromDB(bannerId);
                     banners = banners.filter(b => b.id !== bannerId);
                     loadBannersAdmin();
