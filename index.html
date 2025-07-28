@@ -2072,7 +2072,7 @@
                 <button class="nav-item" onclick="showView('home')">
                     <i class="fas fa-home"></i> Início
                 </button>
-                <button class="nav-item" onclick="loadAllProducts(); showView('products')">
+                <button class="nav-item" onclick="ensureAllProductsLoaded(); showView('products')">
                     <i class="fas fa-box"></i> Produtos
                 </button>
                 <button class="nav-item" onclick="showView('contact')">
@@ -2091,7 +2091,7 @@
                 <button class="nav-item" onclick="showView('home')">
                     <i class="fas fa-home"></i> Início
                 </button>
-                <button class="nav-item" onclick="loadAllProducts(); showView('products')">
+                <button class="nav-item" onclick="ensureAllProductsLoaded(); showView('products')">
                     <i class="fas fa-box"></i> Produtos
                 </button>
                 <button class="nav-item" onclick="toggleCart()">
@@ -2174,7 +2174,7 @@
                         <input type="text" placeholder="Buscar produtos..." id="searchInput">
                     </div>
                     <div class="filter-buttons" id="filterButtons">
-                        <button class="filter-btn active" data-category="all">Todos</button>
+                        <button class="filter-btn active" data-category="all" onclick="filterByCategory('all')">Todos</button>
                         <!-- Category filters will be loaded here -->
                     </div>
                 </div>
@@ -2440,70 +2440,21 @@
             }
         }
 
+        // CORREÇÃO: Carregamento inicial otimizado para melhor performance
         async function loadInitialData() {
-            await Promise.all([
-                loadCategoriesFromDB(),
+            // Carrega dados essenciais primeiro
+            await loadCategoriesFromDB();
+            await loadAllProductsFromDB(); // Carrega TODOS os produtos de uma vez
+            
+            // Carrega dados secundários em paralelo
+            Promise.all([
                 loadBannersFromDB(),
                 loadOrdersFromDB()
             ]);
-            // Only load featured products initially
-            await loadFeaturedProductsFromDB();
         }
 
-        // New function to refresh all data
-        async function refreshAllData() {
-            try {
-                await Promise.all([
-                    loadStoreSettings(),
-                    loadCategoriesFromDB(),
-                    loadBannersFromDB(),
-                    loadOrdersFromDB(),
-                    loadFeaturedProductsFromDB()
-                ]);
-                
-                // Also reload all products if they were loaded
-                if (allProductsLoaded) {
-                    await loadAllProducts();
-                }
-                
-                updateStoreInfo();
-                await updateDashboard();
-                loadAdminData();
-            } catch (error) {
-                console.error('Error refreshing data:', error);
-            }
-        }
-
-        // Optimized product loading
-        async function loadFeaturedProductsFromDB() {
-            try {
-                const { data, error } = await supabase
-                    .from('products')
-                    .select('*')
-                    .eq('status', 'active')
-                    .not('promo_price', 'is', null)
-                    .order('name')
-                    .limit(6);
-
-                if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    products = data;
-                } else {
-                    await createDefaultProducts();
-                }
-                
-                loadFeaturedProducts();
-            } catch (error) {
-                console.error('Error loading featured products:', error);
-                loadDefaultProducts();
-                loadFeaturedProducts();
-            }
-        }
-
-        async function loadAllProducts() {
-            if (allProductsLoaded) return;
-            
+        // CORREÇÃO: Nova função para carregar todos os produtos de uma vez
+        async function loadAllProductsFromDB() {
             try {
                 const { data, error } = await supabase
                     .from('products')
@@ -2516,16 +2467,69 @@
                 
                 if (data && data.length > 0) {
                     products = data;
+                    allProductsLoaded = true; // Marca como carregado
                 } else {
                     await createDefaultProducts();
+                    allProductsLoaded = true;
                 }
                 
-                allProductsLoaded = true;
-                loadProducts();
+                loadFeaturedProducts();
+                loadProducts(); // Carrega todos os produtos no grid "Todos"
             } catch (error) {
-                console.error('Error loading all products:', error);
+                console.error('Error loading products:', error);
                 loadDefaultProducts();
+                allProductsLoaded = true;
+                loadFeaturedProducts();
                 loadProducts();
+            }
+        }
+
+        // CORREÇÃO: Função para garantir que todos os produtos estão carregados
+        async function ensureAllProductsLoaded() {
+            if (!allProductsLoaded) {
+                await loadAllProductsFromDB();
+            }
+        }
+
+        // CORREÇÃO: Função de filtro de categoria corrigida
+        function filterByCategory(categoryId) {
+            // Atualiza botões de filtro
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (categoryId === 'all') {
+                document.querySelector('.filter-btn[data-category="all"]').classList.add('active');
+                // CORREÇÃO: Carrega todos os produtos quando clica em "Todos"
+                const allActiveProducts = products.filter(product => product.status === 'active');
+                displayProducts(allActiveProducts, 'allProducts');
+            } else {
+                document.querySelector(`.filter-btn[data-category="${categoryId}"]`).classList.add('active');
+                const filteredProducts = products.filter(product => 
+                    product.category_id === categoryId && product.status === 'active'
+                );
+                displayProducts(filteredProducts, 'allProducts');
+            }
+
+            showView('products');
+        }
+
+        // New function to refresh all data
+        async function refreshAllData() {
+            try {
+                await Promise.all([
+                    loadStoreSettings(),
+                    loadCategoriesFromDB(),
+                    loadBannersFromDB(),
+                    loadOrdersFromDB(),
+                    loadAllProductsFromDB() // Atualizado para usar a nova função
+                ]);
+                
+                updateStoreInfo();
+                await updateDashboard();
+                loadAdminData();
+            } catch (error) {
+                console.error('Error refreshing data:', error);
             }
         }
 
@@ -3463,30 +3467,6 @@
             sidebar.classList.remove('mobile-open');
         }
 
-        function filterByCategory(categoryId) {
-            // Update filter buttons
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            if (categoryId === 'all') {
-                document.querySelector('.filter-btn[data-category="all"]').classList.add('active');
-                loadProducts();
-            } else {
-                document.querySelector(`.filter-btn[data-category="${categoryId}"]`).classList.add('active');
-                const filteredProducts = products.filter(product => 
-                    product.category_id === categoryId && product.status === 'active'
-                );
-                displayProducts(filteredProducts, 'allProducts');
-            }
-
-            // Ensure all products are loaded when switching to products view
-            if (!allProductsLoaded) {
-                loadAllProducts();
-            }
-            showView('products');
-        }
-
         // Product Functions
         function loadProducts() {
             const activeProducts = products.filter(product => product.status === 'active');
@@ -4343,9 +4323,7 @@
                 
                 document.querySelector('.fixed').remove();
                 loadProductsAdmin();
-                if (allProductsLoaded) {
-                    loadProducts();
-                }
+                loadProducts();
                 loadFeaturedProducts();
                 updateDashboard();
             } catch (error) {
@@ -4363,9 +4341,7 @@
                     await deleteProductFromDB(productId);
                     products = products.filter(p => p.id !== productId);
                     loadProductsAdmin();
-                    if (allProductsLoaded) {
-                        loadProducts();
-                    }
+                    loadProducts();
                     loadFeaturedProducts();
                     updateDashboard();
                 } catch (error) {
