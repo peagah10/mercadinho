@@ -259,7 +259,7 @@
             padding: 0 1.5rem;
         }
 
-        /* Banner Slider - reduced overlay opacity for brighter images */
+        /* Banner Slider - removed overlay opacity for brighter images */
         .banner-section {
             margin: 2rem 0;
             border-radius: var(--radius-xl);
@@ -294,15 +294,15 @@
         }
 
         .banner-slide:nth-child(1) {
-            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), linear-gradient(135deg, var(--fresh-green), var(--primary-color));
+            background: linear-gradient(135deg, var(--fresh-green), var(--primary-color));
         }
 
         .banner-slide:nth-child(2) {
-            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), linear-gradient(135deg, var(--accent-color), var(--discount-red));
+            background: linear-gradient(135deg, var(--accent-color), var(--discount-red));
         }
 
         .banner-slide:nth-child(3) {
-            background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0,0,0,0.1)), linear-gradient(135deg, var(--secondary-color), var(--warning-color));
+            background: linear-gradient(135deg, var(--secondary-color), var(--warning-color));
         }
 
         .banner-content {
@@ -1820,10 +1820,16 @@
         <main class="admin-content">
             <div class="admin-header">
                 <h1 class="admin-title" id="adminTitle">Dashboard</h1>
-                <button class="back-to-store" onclick="hideAdminPanel()">
-                    <i class="fas fa-store"></i>
-                    Voltar para Loja
-                </button>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <button class="add-btn" onclick="refreshAllData()" style="background: rgba(46, 125, 50, 0.1); color: var(--primary-color); border: 1px solid var(--primary-color);">
+                        <i class="fas fa-sync"></i>
+                        Atualizar Tudo
+                    </button>
+                    <button class="back-to-store" onclick="hideAdminPanel()">
+                        <i class="fas fa-store"></i>
+                        Voltar para Loja
+                    </button>
+                </div>
             </div>
 
             <!-- Dashboard View -->
@@ -1879,12 +1885,7 @@
                             </tr>
                         </thead>
                         <tbody id="dashboardOrdersTable">
-                            <tr>
-                                <td colspan="6" style="text-align: center; color: var(--gray-500); padding: 2rem;">
-                                    <div class="loading"></div>
-                                    <span style="margin-left: 1rem;">Carregando pedidos...</span>
-                                </td>
-                            </tr>
+                            <!-- Dashboard orders loaded instantly -->
                         </tbody>
                     </table>
                 </div>
@@ -1912,12 +1913,7 @@
                             </tr>
                         </thead>
                         <tbody id="categoriesTableBody">
-                            <tr>
-                                <td colspan="6" style="text-align: center; color: var(--gray-500); padding: 2rem;">
-                                    <div class="loading"></div>
-                                    <span style="margin-left: 1rem;">Carregando categorias...</span>
-                                </td>
-                            </tr>
+                            <!-- Categories loaded instantly -->
                         </tbody>
                     </table>
                 </div>
@@ -1945,12 +1941,7 @@
                             </tr>
                         </thead>
                         <tbody id="productsTableBody">
-                            <tr>
-                                <td colspan="6" style="text-align: center; color: var(--gray-500); padding: 2rem;">
-                                    <div class="loading"></div>
-                                    <span style="margin-left: 1rem;">Carregando produtos...</span>
-                                </td>
-                            </tr>
+                            <!-- Products loaded instantly -->
                         </tbody>
                     </table>
                 </div>
@@ -1978,12 +1969,7 @@
                             </tr>
                         </thead>
                         <tbody id="bannersTableBody">
-                            <tr>
-                                <td colspan="6" style="text-align: center; color: var(--gray-500); padding: 2rem;">
-                                    <div class="loading"></div>
-                                    <span style="margin-left: 1rem;">Carregando banners...</span>
-                                </td>
-                            </tr>
+                            <!-- Banners loaded instantly -->
                         </tbody>
                     </table>
                 </div>
@@ -2013,12 +1999,7 @@
                             </tr>
                         </thead>
                         <tbody id="ordersTableBody">
-                            <tr>
-                                <td colspan="8" style="text-align: center; color: var(--gray-500); padding: 2rem;">
-                                    <div class="loading"></div>
-                                    <span style="margin-left: 1rem;">Carregando pedidos...</span>
-                                </td>
-                            </tr>
+                            <!-- Orders loaded instantly -->
                         </tbody>
                     </table>
                 </div>
@@ -2160,10 +2141,7 @@
                 <!-- Banner Slider -->
                 <section class="banner-section">
                     <div class="banner-slider" id="bannerSlider">
-                        <div style="display: flex; align-items: center; justify-content: center; height: 400px; color: var(--gray-500);">
-                            <div class="loading"></div>
-                            <span style="margin-left: 1rem;">Carregando banners...</span>
-                        </div>
+                        <!-- Banners carregados instantaneamente -->
                     </div>
                 </section>
 
@@ -2171,10 +2149,7 @@
                 <section class="categories-section">
                     <h2 class="section-title">Categorias</h2>
                     <div class="categories-grid" id="categoriesGrid">
-                        <div style="grid-column: 1/-1; display: flex; align-items: center; justify-content: center; padding: 3rem; color: var(--gray-500);">
-                            <div class="loading"></div>
-                            <span style="margin-left: 1rem;">Carregando categorias...</span>
-                        </div>
+                        <!-- Categorias carregadas instantaneamente -->
                     </div>
                 </section>
 
@@ -2182,10 +2157,7 @@
                 <section class="products-section">
                     <h2 class="section-title">Produtos em Oferta</h2>
                     <div class="products-grid" id="featuredProducts">
-                        <div style="grid-column: 1/-1; display: flex; align-items: center; justify-content: center; padding: 3rem; color: var(--gray-500);">
-                            <div class="loading"></div>
-                            <span style="margin-left: 1rem;">Carregando produtos...</span>
-                        </div>
+                        <!-- Produtos carregados instantaneamente -->
                     </div>
                 </section>
             </div>
@@ -2208,10 +2180,7 @@
                 </div>
 
                 <div class="products-grid" id="allProducts">
-                    <div style="grid-column: 1/-1; display: flex; align-items: center; justify-content: center; padding: 3rem; color: var(--gray-500);">
-                        <div class="loading"></div>
-                        <span style="margin-left: 1rem;">Carregando produtos...</span>
-                    </div>
+                    <!-- Produtos carregados instantaneamente -->
                 </div>
             </div>
         </div>
@@ -2479,6 +2448,30 @@
             ]);
             // Only load featured products initially
             await loadFeaturedProductsFromDB();
+        }
+
+        // New function to refresh all data
+        async function refreshAllData() {
+            try {
+                await Promise.all([
+                    loadStoreSettings(),
+                    loadCategoriesFromDB(),
+                    loadBannersFromDB(),
+                    loadOrdersFromDB(),
+                    loadFeaturedProductsFromDB()
+                ]);
+                
+                // Also reload all products if they were loaded
+                if (allProductsLoaded) {
+                    await loadAllProducts();
+                }
+                
+                updateStoreInfo();
+                await updateDashboard();
+                loadAdminData();
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+            }
         }
 
         // Optimized product loading
@@ -3309,7 +3302,7 @@
             }
         }
 
-        // Banner Functions
+        // Banner Functions - removed overlay opacity for brighter images
         function loadBanners() {
             const bannerSlider = document.getElementById('bannerSlider');
             bannerSlider.innerHTML = '';
@@ -3329,18 +3322,18 @@
                 const bannerSlide = document.createElement('div');
                 bannerSlide.className = `banner-slide ${index === 0 ? 'active' : ''}`;
                 
-                // Use custom background if image exists, otherwise use gradients with reduced overlay
+                // Use custom background if image exists, otherwise use gradients WITHOUT overlay
                 if (banner.image_url) {
-                    bannerSlide.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url(${banner.image_url})`;
+                    bannerSlide.style.backgroundImage = `url(${banner.image_url})`;
                     bannerSlide.style.backgroundSize = 'cover';
                     bannerSlide.style.backgroundPosition = 'center';
                     bannerSlide.style.backgroundRepeat = 'no-repeat';
                 } else {
-                    // Use default gradients based on position with reduced overlay
+                    // Use default gradients WITHOUT overlay for brighter images
                     const gradients = [
-                        'linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), linear-gradient(135deg, var(--fresh-green), var(--primary-color))',
-                        'linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), linear-gradient(135deg, var(--accent-color), var(--discount-red))',
-                        'linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), linear-gradient(135deg, var(--secondary-color), var(--warning-color))'
+                        'linear-gradient(135deg, var(--fresh-green), var(--primary-color))',
+                        'linear-gradient(135deg, var(--accent-color), var(--discount-red))',
+                        'linear-gradient(135deg, var(--secondary-color), var(--warning-color))'
                     ];
                     bannerSlide.style.background = gradients[index % gradients.length];
                 }
